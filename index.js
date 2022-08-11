@@ -2,4 +2,6 @@
 
 
 // создаем экземпляр нашей новой галереи 
-new Gallery(document.getElementById('gallery'));
+new Gallery(document.getElementById('gallery'), {
+   margin: 10 // отступ между слайдами 
+});
