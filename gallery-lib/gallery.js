@@ -4,6 +4,7 @@
 const GalleryClassName = 'gallery';
 const GalleryDraggableClassName = 'gallery-draggable';
 const GalleryLineClassName = 'gallery-line';
+const GalleryLineContainerClassName = 'gallery-line-container';
 const GallerySlideClassName = 'gallery-slide';
 const GalleryDotsClassName = 'gallery-dots'; // все точки (контейнер наших точек)
 const GalleryDotClassName = 'gallery-dot'; // точка
@@ -11,6 +12,8 @@ const GalleryDotActiveClassName = 'gallery-dot-active'; // активная то
 const GalleryNavClassName = 'gallery-nav'; // стрелки 
 const GalleryNavLeftClassName = 'gallery-nav-left'; // левая стрелка
 const GalleryNavRightClassName = 'gallery-nav-right'; // правая стрелка
+const GalleryNavDisabledClassName = 'gallery-nav-disabled'; // не активная стрелка, когда 1 или последняя картинка 
+
 
 // т.к. галерея может быть на странице не одна, а множество, то удобнее всего написать библиотеку через класс  
 // 1. создаем класс Gallery 
@@ -41,7 +44,7 @@ class Gallery {
       this.moveToRight = this.moveToRight.bind(this);
       this.changeCurrentSlide = this.changeCurrentSlide.bind(this);
       this.changeActiveDotClass = this.changeActiveDotClass.bind(this);
-
+      this.changeDisabledNav = this.changeDisabledNav.bind(this);
 
       // вызвываем функции
       this.manageHTML();
@@ -54,8 +57,10 @@ class Gallery {
       this.containerNode.classList.add(GalleryClassName); // добаляем класс gallery
       // добавляем div с классом gallery-line
       this.containerNode.innerHTML = `
-         <div class="${GalleryLineClassName}">
-            ${this.containerNode.innerHTML}
+         <div class="${GalleryLineContainerClassName}">
+            <div class="${GalleryLineClassName}">
+               ${this.containerNode.innerHTML}
+            </div>
          </div>
          <div class="${GalleryNavClassName}">
             <button class="${GalleryNavLeftClassName}">Left</button>
@@ -63,6 +68,8 @@ class Gallery {
          </div>
          <div class="${GalleryDotsClassName}"></div>
       `;
+      // получаем объект по классу gallery-line-container
+      this.lineContainerNode = this.containerNode.querySelector(`.${GalleryLineContainerClassName}`);
       // получаем объект по классу gallery-line
       this.lineNode = this.containerNode.querySelector(`.${GalleryLineClassName}`);
       // получаем объект по классу gallery-dots
@@ -88,8 +95,8 @@ class Gallery {
 
    setParameters() {
       // получаем координаты нашего элемента (нам нужна только ширина)
-      const coordsContainer = this.containerNode.getBoundingClientRect(); 
-      this.width = coordsContainer.width;
+      const coordsLineContainer = this.lineContainerNode.getBoundingClientRect(); 
+      this.width = coordsLineContainer.width;
       // чтоб в обратную сторону слайд тянулся с трудом 
       this.maximumX = -(this.size - 1) * (this.width + this.settings.margin); 
       this.x = -this.currentSlide * (this.width + this.settings.margin);
@@ -97,6 +104,8 @@ class Gallery {
       // количество элементов умножить на ширину
       this.lineNode.style.width = `${this.size * (this.width + this.settings.margin)}px`;  
       this.setStylePosiion();
+      this.changeActiveDotClass();
+      this.changeDisabledNav();
 
       // slideNodes у нас не массив, поэтому для того чтобы использовать методы массива, например forEach,
       // мы должны сделать сначала Array.from
@@ -241,6 +250,7 @@ class Gallery {
       this.setStylePosiion();
       this.setStyleTransition(countSwipes); 
       this.changeActiveDotClass(); 
+      this.changeDisabledNav();
    }
 
    // смена активного класса у слайда 
@@ -250,6 +260,21 @@ class Gallery {
       }
 
       this.dotNodes[this.currentSlide].classList.add(GalleryDotActiveClassName); // добавляем активный класс
+   }
+
+   // не активная стрелка 
+   changeDisabledNav() {
+      if (this.currentSlide <= 0) {
+         this.navLeft.classList.add(GalleryNavDisabledClassName);
+      } else {
+         this.navLeft.classList.remove(GalleryNavDisabledClassName);
+      }
+
+      if (this.currentSlide >= this.size - 1) {
+         this.navRight.classList.add(GalleryNavDisabledClassName);
+      } else {
+         this.navRight.classList.remove(GalleryNavDisabledClassName);
+      }
    }
 
    // смена слайдов 
